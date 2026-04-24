@@ -23,30 +23,16 @@ jobs:
         run: sudo apt-get install -y gcc-mingw-w64-x86-64
 
       - name: Build Windows EXE
-        env:
-          GOOS: windows
-          GOARCH: amd64
-        run: go build -o oGShell.exe cmd/windows/main.go
+        run: GOOS=windows GOARCH=amd64 go build -o oGShell.exe cmd/windows/main.go
 
       - name: Build Windows DLL
-        env:
-          GOOS: windows
-          GOARCH: amd64
-          CGO_ENABLED: "1"
-          CC: x86_64-w64-mingw32-gcc
-        run: go build -buildmode=c-shared -o oGShell.dll cmd/dll/main.go
+        run: GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc go build -buildmode=c-shared -o oGShell.dll cmd/dll/main.go
 
       - name: Build Linux binary
-        env:
-          GOOS: linux
-          GOARCH: amd64
-        run: go build -o oGShell cmd/linux/main.go
+        run: GOOS=linux GOARCH=amd64 go build -o oGShell cmd/linux/main.go
 
       # Client is still WIP and not ready for release
       # - name: Build Linux client
-      #   env:
-      #     GOOS: linux
-      #     GOARCH: amd64
       #   run: go build -o oGShell-client cmd/client/main.go
       
       - name: Set metadata for release

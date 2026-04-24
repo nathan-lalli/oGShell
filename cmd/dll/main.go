@@ -12,6 +12,15 @@ package main
 #include <stdio.h>
 #include <process.h>
 
+// ConPTY compatibility for older MinGW
+typedef VOID* HPCON;
+#ifndef PSEUDOCONSOLE_INHERIT_CURSOR
+#define PSEUDOCONSOLE_INHERIT_CURSOR 0x1
+#endif
+#ifndef PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE
+#define PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE 0x00020016
+#endif
+
 typedef HRESULT (*CreatePseudoConsole_t)(COORD, HANDLE, HANDLE, DWORD, HPCON*);
 typedef HRESULT (*ResizePseudoConsole_t)(HPCON, COORD);
 typedef void (*ClosePseudoConsole_t)(HPCON);

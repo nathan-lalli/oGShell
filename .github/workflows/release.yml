@@ -20,7 +20,7 @@ jobs:
           go-version-file: go.mod
 
       - name: Install MinGW (for DLL CGo build)
-        run: sudo apt-get install -y gcc-mingw-w64-x86-64-win32
+        run: sudo apt-get install -y gcc-mingw-w64-x86-64
 
       - name: Build Windows EXE
         run: GOOS=windows GOARCH=amd64 go build -o oGShell.exe cmd/windows/main.go

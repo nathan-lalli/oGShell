@@ -1,0 +1,69 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Install MinGW (for DLL CGo build)
+        run: sudo apt-get install -y gcc-mingw-w64-x86-64
+
+      - name: Build Windows EXE
+        env:
+          GOOS: windows
+          GOARCH: amd64
+        run: go build -o oGShell.exe cmd/windows/main.go
+
+      - name: Build Windows DLL
+        env:
+          GOOS: windows
+          GOARCH: amd64
+          CGO_ENABLED: "1"
+          CC: x86_64-w64-mingw32-gcc
+        run: go build -buildmode=c-shared -o oGShell.dll cmd/dll/main.go
+
+      - name: Build Linux binary
+        env:
+          GOOS: linux
+          GOARCH: amd64
+        run: go build -o oGShell cmd/linux/main.go
+
+      # Client is still WIP and not ready for release
+      # - name: Build Linux client
+      #   env:
+      #     GOOS: linux
+      #     GOARCH: amd64
+      #   run: go build -o oGShell-client cmd/client/main.go
+      
+      - name: Set metadata for release
+        id: release_meta
+        run: echo "release_name=oGShell ${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ steps.release_meta.outputs.release_name }}
+          files: |
+            oGShell.exe
+            oGShell.dll
+            oGShell
+          #  oGShell-client
+          body: |
+            This release contains the oGShell DLL, EXE, and Linux binary. 
+            The server IP and server port are set to blank by default, you can provide them at execution or via positional arguments. You will have to build the binaries yourself if you want to hardcode the server IP and port.
+            The client is still a work in progress and is not included.

@@ -33,3 +33,6 @@ go.work.sum
 # .idea/
 .vscode/
 .vs/
+
+# Claude files
+CLAUDE.md
